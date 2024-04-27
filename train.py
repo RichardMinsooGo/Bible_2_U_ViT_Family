@@ -255,7 +255,7 @@ scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, args.n_epochs)
 ##### Training
 scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
 def train(epoch):
-    print('\nEpoch: %d' % epoch+1)
+    print('\nEpoch : ', epoch+1)
     net.train()
     train_loss = 0
     correct = 0
