@@ -6,6 +6,9 @@ Reference:
 [1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun
     Deep Residual Learning for Image Recognition. arXiv:1512.03385
 '''
+scale_fac = 3
+image_size = int(32*scale_fac)   # Default 224 at A-100
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
