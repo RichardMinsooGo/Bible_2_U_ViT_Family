@@ -314,7 +314,7 @@ def test(epoch):
         best_acc = acc
     
     os.makedirs("log", exist_ok=True)
-    content = time.ctime() + ' ' + f'Epoch {epoch+1}, lr: {optimizer.param_groups[0]["lr"]:.7f}, val loss: {test_loss:.5f}, acc: {(acc):.5f}'
+    content = 'Current time : ' + time.ctime() + ' ' + f'Epoch {epoch+1}, lr: {optimizer.param_groups[0]["lr"]:.7f}, val loss: {test_loss:.5f}, acc: {(acc):.5f}'
     print(content)
     with open(f'log/log_{args.net}_patch{args.patch}.txt', 'a') as appender:
         appender.write(content + "\n")
@@ -336,15 +336,15 @@ for epoch in range(args.n_epochs):
     list_acc.append(acc)
     
     # Log training..
-    print("Epoch :", epoch+1, "train_loss :", trainloss,
-          "val_loss :", val_loss, "val_acc :", acc, "lr :", optimizer.param_groups[0]["lr"],
-          "epoch_time :", time.time()-start)
+    print("Epoch :", epoch+1, "train_loss :{:.3f} , val_loss :{:.3f}".format(trainloss, val_loss),
+          "val_acc :", acc, "lr :{:.7f}".format(optimizer.param_groups[0]["lr"]),
+          "epoch_time :", int(time.time()-start) ,"sec")
 
     # Write out csv..
     with open(f'log/log_{args.net}_patch{args.patch}.csv', 'w') as f:
         writer = csv.writer(f, lineterminator='\n')
         writer.writerow(list_loss) 
         writer.writerow(list_acc) 
-    print(list_loss)
+    # print(list_loss)
 
     
