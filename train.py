@@ -89,8 +89,8 @@ if aug:
 trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform_train)
 testset  = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform_test)
 
-trainloader = torch.utils.data.DataLoader(trainset, batch_size=bs, shuffle=True, num_workers=8)
-testloader  = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=8)
+train_ds = torch.utils.data.DataLoader(trainset, batch_size=bs, shuffle=True, num_workers=8)
+test_ds  = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False, num_workers=8)
 
 classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
 
@@ -115,6 +115,14 @@ elif args.net=='res101':
 elif args.net=="convmixer":
     # from paper, accuracy >96%. you can tune the depth and dim to scale accuracy and speed.
     net = ConvMixer(256, 16, kernel_size=args.convkernel, patch_size=1, n_classes=10)
+    
+elif args.net=="Conv_tr":
+    from models.Conv_tr import CvT
+    
+    embed_size  = 64   # 192 : CvT-W24 
+    num_class   = 10
+    
+    net = CvT(embed_size, num_class)
     
 elif args.net=="mlpmixer":
     from models.mlpmixer import MLPMixer
@@ -252,57 +260,79 @@ elif args.opt == "sgd":
 # use cosine scheduling
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, args.n_epochs)
 
+from tqdm import tqdm, tqdm_notebook, trange
+
 ##### Training
 scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
 def train(epoch):
-    print('\nEpoch : ', epoch+1)
+    # print('\nEpoch : ', epoch+1)
     net.train()
-    train_loss = 0
-    correct = 0
-    total = 0
-    for batch_idx, (inputs, targets) in enumerate(trainloader):
-        inputs, targets = inputs.to(device), targets.to(device)
-        # Train with amp
-        with torch.cuda.amp.autocast(enabled=use_amp):
-            outputs = net(inputs)
-            loss = criterion(outputs, targets)
-        scaler.scale(loss).backward()
-        scaler.step(optimizer)
-        scaler.update()
-        optimizer.zero_grad()
+    with tqdm_notebook(total=len(train_ds), desc=f"Train Epoch {epoch+1}") as pbar:    
+        train_losses = []
+        train_accuracies = []
+        train_loss = 0
+        correct = 0
+        total_num = 0
+        for batch_idx, (inputs, targets) in enumerate(train_ds):
+            inputs, targets = inputs.to(device), targets.to(device)
+            # Train with amp
+            with torch.cuda.amp.autocast(enabled=use_amp):
+                outputs = net(inputs)
+                loss = criterion(outputs, targets)
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+            optimizer.zero_grad()
 
-        train_loss += loss.item()
-        _, predicted = outputs.max(1)
-        total += targets.size(0)
-        correct += predicted.eq(targets).sum().item()
+            train_loss += loss.item()
+            _, predicted = outputs.max(1)
+            total_num += targets.size(0)
+            correct += predicted.eq(targets).sum().item()
 
-        progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-            % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+            acc = 100.*correct/total_num
+            
+            train_losses.append(loss.item())
+            train_accuracies.append(acc)
+            
+            pbar.update(1)
+            pbar.set_postfix_str(f"Loss: {loss.item():.4f} ({np.mean(train_losses):.4f}) Acc: {acc:.3f} ({np.mean(train_accuracies):.3f})")
+            
+            # progress_bar(batch_idx, len(train_ds), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+            #     % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
     return train_loss/(batch_idx+1)
 
 ##### Validation
 def test(epoch):
     global best_acc
     net.eval()
-    test_loss = 0
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(testloader):
-            inputs, targets = inputs.to(device), targets.to(device)
-            outputs = net(inputs)
-            loss = criterion(outputs, targets)
+    with tqdm_notebook(total=len(test_ds), desc=f"Test_ Epoch {epoch+1}") as pbar:    
+        test_losses = []
+        test_accuracies = []
+        test_loss = 0
+        correct = 0
+        total_num = 0
+        with torch.no_grad():
+            for batch_idx, (inputs, targets) in enumerate(test_ds):
+                inputs, targets = inputs.to(device), targets.to(device)
+                outputs = net(inputs)
+                loss = criterion(outputs, targets)
 
-            test_loss += loss.item()
-            _, predicted = outputs.max(1)
-            total += targets.size(0)
-            correct += predicted.eq(targets).sum().item()
+                test_loss += loss.item()
+                _, predicted = outputs.max(1)
+                total_num += targets.size(0)
+                correct += predicted.eq(targets).sum().item()
 
-            progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
-    
+                # progress_bar(batch_idx, len(test_ds), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+                #     % (test_loss/(batch_idx+1), 100.*correct/total_num, correct, total_num))
+                acc = 100.*correct/total_num
+                test_losses.append(loss.item())
+                test_accuracies.append(acc)
+
+                pbar.update(1)
+                pbar.set_postfix_str(f"Loss: {loss.item():.4f} ({np.mean(test_losses):.4f}) Acc: {acc:.3f} ({np.mean(test_accuracies):.3f})")
+        
     # Save checkpoint.
-    acc = 100.*correct/total
+    acc = 100.*correct/total_num
     if acc > best_acc:
         print('Saving..')
         state = {"model": net.state_dict(),
