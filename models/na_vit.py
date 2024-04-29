@@ -387,3 +387,57 @@ class NaViT(nn.Module):
         x = self.to_latent(x)
 
         return self.mlp_head(x)
+
+
+if __name__ == '__main__':
+    # Example usage
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    batch_size = 5
+
+    # 5 images of different resolutions - List[List[Tensor]]
+
+    # for now, you'll have to correctly place images in same batch element as to not exceed maximum allowed sequence length for self-attention w/ masking
+
+    x = [
+        [torch.randn(3, 256, 256), torch.randn(3, 128, 128)],
+        [torch.randn(3, 128, 256), torch.randn(3, 256, 128)],
+        [torch.randn(3, 64, 256)]
+    ] # channel size : 3
+
+    transfer_model = NaViT(
+        image_size = 256,
+        patch_size = 32,
+        num_classes = 1000,
+        dim = 1024,
+        depth = 6,
+        heads = 16,
+        mlp_dim = 2048,
+        dropout = 0.1,
+        emb_dropout = 0.1,
+        token_dropout_prob = 0.1  # token dropout of 10% (keep 90% of tokens)
+    )
+    
+    model=transfer_model.to(device)
+
+    print(model(x)[1].shape)
+    print(model(x).shape)     # (5, 1000) - 5, because 5 images of different resolution above
+    
+    
+    # Or if you would rather that the framework auto group the images into variable lengthed sequences that do not exceed a certain max length
+    
+    images = [
+        torch.randn(3, 256, 256),
+        torch.randn(3, 128, 128),
+        torch.randn(3, 128, 256),
+        torch.randn(3, 256, 128),
+        torch.randn(3, 64, 256)
+    ]
+
+    preds = model(
+        images,
+        group_images = True,
+        group_max_seq_len = 64
+    ) # (5, 1000)
+    
+    print(preds.shape)     # (5, 1000) 

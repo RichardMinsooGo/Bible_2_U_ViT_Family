@@ -163,7 +163,7 @@ class CvT(nn.Module):
         x = self.ff(x)
         return x
 
-    
+
 
 if __name__ == '__main__':
     # Example usage
@@ -178,6 +178,7 @@ if __name__ == '__main__':
     transfer_model = CvT(embed_size, num_class)
     model=transfer_model.to(device)
     print(model(x)[1].shape)
+    print(model(x).shape)
 
 
             
