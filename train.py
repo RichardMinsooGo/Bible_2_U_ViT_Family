@@ -232,6 +232,18 @@ elif args.net=="swin":
                 num_classes=10,
                 downscaling_factors=(2,2,2,1))
 
+elif args.net=="t2t":
+    from models.t2t import T2TViT
+    net = T2TViT(
+        dim = 512,
+        image_size = 224,
+        depth = 5,
+        heads = 8,
+        mlp_dim = 512,
+        num_classes = 10,
+        t2t_layers = ((7, 4), (3, 2), (3, 2)) # tuples of the kernel size and stride of each consecutive layers of the initial token to token module
+    )
+    
 # For Multi-GPU
 if 'cuda' in device:
     print(device)
