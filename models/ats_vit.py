@@ -128,6 +128,7 @@ class Attention(nn.Module):
     def __init__(self, dim, heads = 8, dim_head = 64, dropout = 0., output_num_tokens = None):
         super().__init__()
         inner_dim = dim_head *  heads
+        
         self.heads = heads
         self.scale = dim_head ** -0.5
 
@@ -171,7 +172,6 @@ class Attention(nn.Module):
 
         out = torch.matmul(attn, v)
         out = rearrange(out, 'b h n d -> b n (h d)')
-
         return self.to_out(out), mask, sampled_token_ids
 
 class Transformer(nn.Module):
@@ -187,7 +187,6 @@ class Transformer(nn.Module):
                 Attention(dim, output_num_tokens = output_num_tokens, heads = heads, dim_head = dim_head, dropout = dropout),
                 FeedForward(dim, mlp_dim, dropout = dropout)
             ]))
-
     def forward(self, x):
         b, n, device = *x.shape[:2], x.device
 
@@ -260,3 +259,42 @@ class ViT(nn.Module):
             return logits, token_ids
 
         return logits
+
+
+if __name__ == '__main__':
+    # Example usage
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    batch_size = 5
+    n_classes  = 10
+    img_size   = 224
+
+    imgs = torch.rand(batch_size, 3, img_size, img_size).to(device)   # channel size : 3
+
+    transfer_model = ViT(
+        image_size = 256,
+        patch_size = 16,
+        num_classes = n_classes,
+        dim = 1024,
+        depth = 6,
+        max_tokens_per_depth = (256, 128, 64, 32, 16, 8), # a tuple that denotes the maximum number of tokens that any given layer should have. if the layer has greater than this amount, it will undergo adaptive token sampling
+        heads = 16,
+        mlp_dim = 2048,
+        dropout = 0.1,
+        emb_dropout = 0.1
+        )
+
+    model=transfer_model.to(device)
+
+    preds = model(imgs) # (batch_size, n_classes)
+
+    # you can also get a list of the final sampled patch ids
+    # a value of -1 denotes padding
+
+    preds, token_ids = model(imgs, return_sampled_token_ids = True) # (4, n_classes), (4, <=8)
+
+    print(preds.shape)          # (batch_size, n_classes)
+    print(token_ids.shape)      # (batch_size, <=8)
+    print(model(imgs).shape)    # (batch_size, n_classes)
+    
+    
