@@ -268,3 +268,40 @@ class CrossViT(nn.Module):
         lg_logits = self.lg_mlp_head(lg_cls)
 
         return sm_logits + lg_logits
+
+if __name__ == '__main__':
+    # Example usage
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    batch_size = 5
+    n_classes  = 10
+    img_size = 256
+
+    imgs = torch.rand(batch_size, 3, img_size, img_size).to(device)   # channel size : 3
+
+    transfer_model =CrossViT(
+        image_size = 256,
+        num_classes = 10,
+        depth = 4,               # number of multi-scale encoding blocks
+        sm_dim = 192,            # high res dimension
+        sm_patch_size = 16,      # high res patch size (should be smaller than lg_patch_size)
+        sm_enc_depth = 2,        # high res depth
+        sm_enc_heads = 8,        # high res heads
+        sm_enc_mlp_dim = 2048,   # high res feedforward dimension
+        lg_dim = 384,            # low res dimension
+        lg_patch_size = 64,      # low res patch size
+        lg_enc_depth = 3,        # low res depth
+        lg_enc_heads = 8,        # low res heads
+        lg_enc_mlp_dim = 2048,   # low res feedforward dimensions
+        cross_attn_depth = 2,    # cross attention rounds
+        cross_attn_heads = 8,    # cross attention heads
+        dropout = 0.1,
+        emb_dropout = 0.1
+    )
+
+    model=transfer_model.to(device)
+
+    print(model(imgs)[1].shape)
+    print(model(imgs).shape) # (batch_size, n_classes)
+    
+    
