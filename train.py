@@ -243,7 +243,84 @@ elif args.net=="t2t":
         num_classes = 10,
         t2t_layers = ((7, 4), (3, 2), (3, 2)) # tuples of the kernel size and stride of each consecutive layers of the initial token to token module
     )
-    
+
+
+elif args.net=="cct_2":
+    from models.cct import cct_2
+    net = cct_2(
+        img_size = 224,
+        n_conv_layers = 1,
+        kernel_size = 7,
+        stride = 2,
+        padding = 3,
+        pooling_kernel_size = 3,
+        pooling_stride = 2,
+        pooling_padding = 1,
+        num_classes = 10,
+        positional_embedding = 'learnable', # ['sine', 'learnable', 'none']
+    )
+
+"""
+# Backpropagation error at CrossViT
+elif args.net=="cross_vit":
+    from models.cross_vit import CrossViT
+    net = CrossViT(
+        image_size = 256,
+        num_classes = 10,
+        depth = 4,               # number of multi-scale encoding blocks
+        sm_dim = 192,            # high res dimension
+        sm_patch_size = 16,      # high res patch size (should be smaller than lg_patch_size)
+        sm_enc_depth = 2,        # high res depth
+        sm_enc_heads = 8,        # high res heads
+        sm_enc_mlp_dim = 2048,   # high res feedforward dimension
+        lg_dim = 384,            # low res dimension
+        lg_patch_size = 64,      # low res patch size
+        lg_enc_depth = 3,        # low res depth
+        lg_enc_heads = 8,        # low res heads
+        lg_enc_mlp_dim = 2048,   # low res feedforward dimensions
+        cross_attn_depth = 2,    # cross attention rounds
+        cross_attn_heads = 8,    # cross attention heads
+        dropout = 0.1,
+        emb_dropout = 0.1
+    )
+"""
+
+
+"""
+# Backpropagation error at CCT
+elif args.net=="cct":
+    from models.cct import CCT
+    net = CCT(
+        img_size = (224, 224),
+        embedding_dim = 384,
+        n_conv_layers = 2,
+        kernel_size = 7,
+        stride = 2,
+        padding = 3,
+        pooling_kernel_size = 3,
+        pooling_stride = 2,
+        pooling_padding = 1,
+        num_layers = 14,
+        num_heads = 6,
+        mlp_ratio = 3.,
+        num_classes = 10,
+        positional_embedding = 'learnable', # ['sine', 'learnable', 'none']
+    )
+
+"""
+
+
+
+
+
+
+
+
+
+
+
+
+
 # For Multi-GPU
 if 'cuda' in device:
     print(device)
