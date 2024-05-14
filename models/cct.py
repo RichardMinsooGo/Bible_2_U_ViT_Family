@@ -1,6 +1,6 @@
 import torch
-from torch import nn, einsum
 import torch.nn.functional as F
+from torch import nn, einsum
 
 from einops import rearrange, repeat
 
@@ -348,3 +348,55 @@ class CCT(nn.Module):
     def forward(self, x):
         x = self.tokenizer(x)
         return self.classifier(x)
+
+if __name__ == '__main__':
+    # Example usage
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    batch_size = 5
+    n_classes  = 10
+    img_size = 224
+
+    imgs = torch.rand(batch_size, 3, img_size, img_size).to(device)   # channel size : 3
+
+    transfer_model = CCT(
+        img_size = (224, 224),
+        embedding_dim = 384,
+        n_conv_layers = 2,
+        kernel_size = 7,
+        stride = 2,
+        padding = 3,
+        pooling_kernel_size = 3,
+        pooling_stride = 2,
+        pooling_padding = 1,
+        num_layers = 14,
+        num_heads = 6,
+        mlp_ratio = 3.,
+        num_classes = n_classes,
+        positional_embedding = 'learnable', # ['sine', 'learnable', 'none']
+    )
+    model=transfer_model.to(device)
+
+    print(model(imgs)[1].shape)
+    print(model(imgs).shape) # (batch_size, n_classes)
+    
+    """
+    # Inufficient RAM at Colab for cct_14
+    transfer_model = cct_8(
+        img_size = 224,
+        n_conv_layers = 1,
+        kernel_size = 7,
+        stride = 2,
+        padding = 3,
+        pooling_kernel_size = 3,
+        pooling_stride = 2,
+        pooling_padding = 1,
+        num_classes = n_classes,
+        positional_embedding = 'learnable', # ['sine', 'learnable', 'none']
+    )
+    model=transfer_model.to(device)
+
+    print(model(imgs)[1].shape)
+    print(model(imgs).shape) # (batch_size, n_classes)
+    """
+    
