@@ -310,7 +310,7 @@ elif args.net=="crossformer":
     )
 
 elif args.net=="cvt":
-    from models.cvt  import CvT
+    from models.cvt import CvT
     net = CvT(
         num_classes = 10,
         s1_emb_dim = 64,        # stage 1 - dimension
@@ -338,6 +338,20 @@ elif args.net=="cvt":
         s3_depth = 10,
         s3_mlp_mult = 4,
         dropout = 0.
+    )
+
+elif args.net=="deepvit":
+    from models.deepvit import DeepViT
+    net = DeepViT(
+        image_size = 256,
+        patch_size = 32,
+        num_classes = 10,
+        dim = 1024,
+        depth = 6,
+        heads = 16,
+        mlp_dim = 2048,
+        dropout = 0.1,
+        emb_dropout = 0.1
     )
 
 
