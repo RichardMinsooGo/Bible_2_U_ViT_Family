@@ -303,6 +303,18 @@ elif args.net=="cross_vit":
         emb_dropout = 0.1
     )
 
+# Backpropagation error at CrossViT
+elif args.net=="crossformer":
+    from models.crossformer import CrossFormer
+    net = CrossFormer(
+        num_classes = 10,                # number of output classes
+        dim = (64, 128, 256, 512),         # dimension at each stage
+        depth = (2, 2, 8, 2),              # depth of transformer at each stage
+        global_window_size = (8, 4, 2, 1), # global window sizes at each stage
+        local_window_size = 7,             # local window size (can be customized for each stage, but in paper, held constant at 7 for all stages)
+    )
+
+
 
 
 
