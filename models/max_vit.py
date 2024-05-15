@@ -289,3 +289,32 @@ class MaxViT(nn.Module):
             x = stage(x)
 
         return self.mlp_head(x)
+
+if __name__ == '__main__':
+    # Example usage
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    batch_size = 5
+    n_classes  = 10
+    img_size = 224
+
+    imgs = torch.rand(batch_size, 3, img_size, img_size).to(device)   # channel size : 3
+
+    transfer_model = MaxViT(
+        num_classes = n_classes,
+        dim_conv_stem = 64,               # dimension of the convolutional stem, would default to dimension of first layer if not specified
+        dim = 96,                         # dimension of first layer, doubles every layer
+        dim_head = 32,                    # dimension of attention heads, kept at 32 in paper
+        depth = (2, 2, 5, 2),             # number of MaxViT blocks per stage, which consists of MBConv, block-like attention, grid-like attention
+        window_size = 7,                  # window size for block and grids
+        mbconv_expansion_rate = 4,        # expansion rate of MBConv
+        mbconv_shrinkage_rate = 0.25,     # shrinkage rate of squeeze-excitation in MBConv
+        dropout = 0.1                     # dropout
+    )
+    
+    model=transfer_model.to(device)
+
+    print(model(imgs)[1].shape)
+    print(model(imgs).shape) # (batch_size, n_classes)
+    
+    

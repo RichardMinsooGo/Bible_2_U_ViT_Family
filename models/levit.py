@@ -193,3 +193,30 @@ class LeViT(nn.Module):
             return out, distill
 
         return out
+
+if __name__ == '__main__':
+    # Example usage
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    batch_size = 5
+    n_classes  = 10
+    img_size = 224
+
+    imgs = torch.rand(batch_size, 3, img_size, img_size).to(device)   # channel size : 3
+    
+    transfer_model = LeViT(
+        image_size = 224,
+        num_classes = 10,
+        stages = 3,             # number of stages
+        dim = (256, 384, 512),  # dimensions at each stage
+        depth = 4,              # transformer of depth 4 at each stage
+        heads = (4, 6, 8),      # heads at each stage
+        mlp_mult = 2,
+        dropout = 0.1
+    )
+    model=transfer_model.to(device)
+
+    print(model(imgs)[1].shape)
+    print(model(imgs).shape) # (batch_size, n_classes)
+    
+    
