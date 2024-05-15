@@ -2,7 +2,6 @@
 '''
 
 Train CIFAR10 with PyTorch and Vision Transformers!
-written by @kentaroy47, @arutema47
 
 '''
 
@@ -244,8 +243,6 @@ elif args.net=="t2t":
         t2t_layers = ((7, 4), (3, 2), (3, 2)) # tuples of the kernel size and stride of each consecutive layers of the initial token to token module
     )
 
-
-# Backpropagation error at CCT
 elif args.net=="cct":
     from models.cct import CCT
     net = CCT(
@@ -280,7 +277,6 @@ elif args.net=="cct_2":
         positional_embedding = 'learnable', # ['sine', 'learnable', 'none']
     )
 
-# Backpropagation error at CrossViT
 elif args.net=="cross_vit":
     from models.cross_vit import CrossViT
     net = CrossViT(
@@ -303,7 +299,6 @@ elif args.net=="cross_vit":
         emb_dropout = 0.1
     )
 
-# Backpropagation error at CrossViT
 elif args.net=="crossformer":
     from models.crossformer import CrossFormer
     net = CrossFormer(
@@ -313,6 +308,38 @@ elif args.net=="crossformer":
         global_window_size = (8, 4, 2, 1), # global window sizes at each stage
         local_window_size = 7,             # local window size (can be customized for each stage, but in paper, held constant at 7 for all stages)
     )
+
+elif args.net=="cvt":
+    from models.cvt  import CvT
+    net = CvT(
+        num_classes = 10,
+        s1_emb_dim = 64,        # stage 1 - dimension
+        s1_emb_kernel = 7,      # stage 1 - conv kernel
+        s1_emb_stride = 4,      # stage 1 - conv stride
+        s1_proj_kernel = 3,     # stage 1 - attention ds-conv kernel size
+        s1_kv_proj_stride = 2,  # stage 1 - attention key / value projection stride
+        s1_heads = 1,           # stage 1 - heads
+        s1_depth = 1,           # stage 1 - depth
+        s1_mlp_mult = 4,        # stage 1 - feedforward expansion factor
+        s2_emb_dim = 192,       # stage 2 - (same as above)
+        s2_emb_kernel = 3,
+        s2_emb_stride = 2,
+        s2_proj_kernel = 3,
+        s2_kv_proj_stride = 2,
+        s2_heads = 3,
+        s2_depth = 2,
+        s2_mlp_mult = 4,
+        s3_emb_dim = 384,       # stage 3 - (same as above)
+        s3_emb_kernel = 3,
+        s3_emb_stride = 2,
+        s3_proj_kernel = 3,
+        s3_kv_proj_stride = 2,
+        s3_heads = 4,
+        s3_depth = 10,
+        s3_mlp_mult = 4,
+        dropout = 0.
+    )
+
 
 
 
