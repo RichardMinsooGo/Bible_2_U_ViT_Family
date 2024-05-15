@@ -302,7 +302,7 @@ elif args.net=="cross_vit":
 elif args.net=="crossformer":
     from models.crossformer import CrossFormer
     net = CrossFormer(
-        num_classes = 10,                # number of output classes
+        num_classes = 10,                  # number of output classes
         dim = (64, 128, 256, 512),         # dimension at each stage
         depth = (2, 2, 8, 2),              # depth of transformer at each stage
         global_window_size = (8, 4, 2, 1), # global window sizes at each stage
@@ -353,6 +353,73 @@ elif args.net=="deepvit":
         dropout = 0.1,
         emb_dropout = 0.1
     )
+
+# Cannot test at A-100 (inssufficient GPU)
+elif args.net=="efficient_att_vit":
+    from models.efficient import Nystromformer, ViT
+    """
+    efficient_transformer = Nystromformer(
+        dim = 512,
+        depth = 12,
+        heads = 8,
+        num_landmarks = 256
+    )
+    """
+    
+    efficient_transformer = Nystromformer(
+        dim = 512,
+        depth = 6,
+        heads = 8,
+        num_landmarks = 256
+    )
+    
+    net = ViT(
+        dim = 512,
+        image_size = 256,
+        patch_size = 32,
+        num_classes = 10,
+        transformer = efficient_transformer
+    )
+    
+    """        
+    net = ViT(
+        dim = 512,
+        image_size = 2048,
+        patch_size = 32,
+        num_classes = 10,
+        transformer = efficient_transformer
+    )
+    """
+
+elif args.net=="levit":
+    from models.levit import LeViT
+    net = LeViT(
+        image_size = 224,
+        num_classes = 10,
+        stages = 3,             # number of stages
+        dim = (256, 384, 512),  # dimensions at each stage
+        depth = 4,              # transformer of depth 4 at each stage
+        heads = (4, 6, 8),      # heads at each stage
+        mlp_mult = 2,
+        dropout = 0.1
+    )
+
+elif args.net=="max_vit":
+    from models.max_vit import MaxViT
+    net = MaxViT(
+        num_classes = 10,
+        dim_conv_stem = 64,               # dimension of the convolutional stem, would default to dimension of first layer if not specified
+        dim = 96,                         # dimension of first layer, doubles every layer
+        dim_head = 32,                    # dimension of attention heads, kept at 32 in paper
+        depth = (2, 2, 5, 2),             # number of MaxViT blocks per stage, which consists of MBConv, block-like attention, grid-like attention
+        window_size = 7,                  # window size for block and grids
+        mbconv_expansion_rate = 4,        # expansion rate of MBConv
+        mbconv_shrinkage_rate = 0.25,     # shrinkage rate of squeeze-excitation in MBConv
+        dropout = 0.1                     # dropout
+    )
+
+
+
 
 
 
