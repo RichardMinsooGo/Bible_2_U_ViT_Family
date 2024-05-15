@@ -245,6 +245,26 @@ elif args.net=="t2t":
     )
 
 
+# Backpropagation error at CCT
+elif args.net=="cct":
+    from models.cct import CCT
+    net = CCT(
+        img_size = (224, 224),
+        embedding_dim = 384,
+        n_conv_layers = 2,
+        kernel_size = 7,
+        stride = 2,
+        padding = 3,
+        pooling_kernel_size = 3,
+        pooling_stride = 2,
+        pooling_padding = 1,
+        num_layers = 14,
+        num_heads = 6,
+        mlp_ratio = 3.,
+        num_classes = 10,
+        positional_embedding = 'learnable', # ['sine', 'learnable', 'none']
+    )
+    
 elif args.net=="cct_2":
     from models.cct import cct_2
     net = cct_2(
@@ -260,7 +280,6 @@ elif args.net=="cct_2":
         positional_embedding = 'learnable', # ['sine', 'learnable', 'none']
     )
 
-"""
 # Backpropagation error at CrossViT
 elif args.net=="cross_vit":
     from models.cross_vit import CrossViT
@@ -283,31 +302,6 @@ elif args.net=="cross_vit":
         dropout = 0.1,
         emb_dropout = 0.1
     )
-"""
-
-
-"""
-# Backpropagation error at CCT
-elif args.net=="cct":
-    from models.cct import CCT
-    net = CCT(
-        img_size = (224, 224),
-        embedding_dim = 384,
-        n_conv_layers = 2,
-        kernel_size = 7,
-        stride = 2,
-        padding = 3,
-        pooling_kernel_size = 3,
-        pooling_stride = 2,
-        pooling_padding = 1,
-        num_layers = 14,
-        num_heads = 6,
-        mlp_ratio = 3.,
-        num_classes = 10,
-        positional_embedding = 'learnable', # ['sine', 'learnable', 'none']
-    )
-
-"""
 
 
 
