@@ -418,7 +418,71 @@ elif args.net=="max_vit":
         dropout = 0.1                     # dropout
     )
 
+elif args.net=="max_vit_with_registers":
+    from models.max_vit_with_registers import MaxViT
+    net = MaxViT(
+        num_classes = 10,
+        dim_conv_stem = 64,               # dimension of the convolutional stem, would default to dimension of first layer if not specified
+        dim = 96,                         # dimension of first layer, doubles every layer
+        dim_head = 32,                    # dimension of attention heads, kept at 32 in paper
+        depth = (2, 2, 5, 2),             # number of MaxViT blocks per stage, which consists of MBConv, block-like attention, grid-like attention
+        window_size = 7,                  # window size for block and grids
+        mbconv_expansion_rate = 4,        # expansion rate of MBConv
+        mbconv_shrinkage_rate = 0.25,     # shrinkage rate of squeeze-excitation in MBConv
+        dropout = 0.1,                    # dropout
+        num_register_tokens = 4
+    )
 
+elif args.net=="mobile_vit":
+    from models.mobile_vit import MobileViT
+    img_size = 256
+    net = MobileViT(
+        image_size = (img_size, img_size),
+        dims = [96, 120, 144],
+        channels = [16, 32, 48, 48, 64, 64, 80, 80, 96, 96, 384],
+        num_classes = 10
+    )
+
+elif args.net=="nest":
+    from models.nest import NesT
+    net = NesT(
+        image_size = 224,
+        patch_size = 4,
+        dim = 96,
+        heads = 3,
+        num_hierarchies = 3,        # number of hierarchies
+        block_repeats = (2, 2, 8),  # the number of transformer blocks at each hierarchy, starting from the bottom
+        num_classes = 10
+    )
+
+elif args.net=="parallel_vit":
+    from models.parallel_vit import ViT
+    net = ViT(
+        image_size = 256,
+        patch_size = 16,
+        num_classes = 10,
+        dim = 1024,
+        depth = 6,
+        heads = 8,
+        mlp_dim = 2048,
+        num_parallel_branches = 2,  # in paper, they claimed 2 was optimal
+        dropout = 0.1,
+        emb_dropout = 0.1
+    )
+
+elif args.net=="pit":
+    from models.pit import PiT
+    net = PiT(
+        image_size = 224,
+        patch_size = 14,
+        dim = 256,
+        num_classes = 10,
+        depth = (3, 3, 3),     # list of depths, indicating the number of rounds of each stage before a downsample
+        heads = 16,
+        mlp_dim = 2048,
+        dropout = 0.1,
+        emb_dropout = 0.1
+    )
 
 
 
