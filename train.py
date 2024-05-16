@@ -485,7 +485,30 @@ elif args.net=="pit":
     )
 
 
+elif args.net=="regionvit":
+    from models.regionvit import RegionViT
+    net = RegionViT(
+        dim = (64, 128, 256, 512),      # tuple of size 4, indicating dimension at each stage
+        depth = (2, 2, 8, 2),           # depth of the region to local transformer at each stage
+        window_size = 7,                # window size, which should be either 7 or 14
+        num_classes = 10,             # number of output classes
+        tokenize_local_3_conv = False,  # whether to use a 3 layer convolution to encode the local tokens from the image. the paper uses this for the smaller models, but uses only 1 conv (set to False) for the larger models
+        use_peg = False,                # whether to use positional generating module. they used this for object detection for a boost in performance
+    )
 
+elif args.net=="rvt":
+    from models.rvt import RvT
+    net = RvT(
+        image_size = 224,
+        patch_size = 32,
+        num_classes = n_classes,
+        dim = 1024,
+        depth = 6,
+        heads = 16,
+        mlp_dim = 2048,
+        dropout = 0.1,
+        emb_dropout = 0.1
+    )
 
 
 
