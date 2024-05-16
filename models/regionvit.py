@@ -267,3 +267,28 @@ class RegionViT(nn.Module):
             local_tokens, region_tokens = transformer(local_tokens, region_tokens)
 
         return self.to_logits(region_tokens)
+
+if __name__ == '__main__':
+    # Example usage
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    batch_size = 5
+    n_classes  = 10
+    img_size = 224
+
+    imgs = torch.rand(batch_size, 3, img_size, img_size).to(device)   # channel size : 3
+
+    transfer_model = RegionViT(
+        dim = (64, 128, 256, 512),      # tuple of size 4, indicating dimension at each stage
+        depth = (2, 2, 8, 2),           # depth of the region to local transformer at each stage
+        window_size = 7,                # window size, which should be either 7 or 14
+        num_classes = 10,             # number of output classes
+        tokenize_local_3_conv = False,  # whether to use a 3 layer convolution to encode the local tokens from the image. the paper uses this for the smaller models, but uses only 1 conv (set to False) for the larger models
+        use_peg = False,                # whether to use positional generating module. they used this for object detection for a boost in performance
+    )
+    model=transfer_model.to(device)
+
+    print(model(imgs)[1].shape)
+    print(model(imgs).shape) # (batch_size, n_classes)
+    
+    
