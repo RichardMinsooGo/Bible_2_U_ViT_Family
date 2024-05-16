@@ -209,7 +209,6 @@ class XCATransformer(Module):
             x = cross_covariance_attn(x) + x
             x = local_patch_interaction(x) + x
             x = ff(x) + x
-
         return x
 
 class XCiT(Module):
@@ -230,6 +229,7 @@ class XCiT(Module):
         local_patch_kernel_size = 3,
         layer_dropout = 0.
     ):
+        
         super().__init__()
         assert image_size % patch_size == 0, 'Image dimensions must be divisible by the patch size.'
 
@@ -281,3 +281,35 @@ class XCiT(Module):
         cls_tokens = self.cls_transformer(cls_tokens, context = x)
 
         return self.mlp_head(cls_tokens[:, 0])
+
+if __name__ == '__main__':
+    # Example usage
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    batch_size = 5
+    n_classes  = 10
+    img_size = 256
+
+    imgs = torch.rand(batch_size, 3, img_size, img_size).to(device)   # channel size : 3
+
+    transfer_model = XCiT(
+        image_size = 256,
+        patch_size = 32,
+        num_classes = 10,
+        dim = 1024,
+        depth = 12,                     # depth of xcit transformer
+        cls_depth = 2,                  # depth of cross attention of CLS tokens to patch, attention pool at end
+        heads = 16,
+        mlp_dim = 2048,
+        dropout = 0.1,
+        emb_dropout = 0.1,
+        layer_dropout = 0.05,           # randomly dropout 5% of the layers
+        local_patch_kernel_size = 3     # kernel size of the local patch interaction module (depthwise convs)
+    )
+    
+    model=transfer_model.to(device)
+
+    print(model(imgs)[1].shape)
+    print(model(imgs).shape) # (batch_size, n_classes)
+    
+    

@@ -37,9 +37,9 @@ class FeedForward(nn.Module):
 class Attention(nn.Module):
     def __init__(self, dim, heads = 8, dim_head = 64, dropout = 0.):
         super().__init__()
-        inner_dim = dim_head *  heads
+        inner_dim = dim_head * heads
         project_out = not (heads == 1 and dim_head == dim)
-
+        
         self.heads = heads
         self.scale = dim_head ** -0.5
 
@@ -79,7 +79,22 @@ class Transformer(nn.Module):
         return x
 
 class ViT(nn.Module):
-    def __init__(self, *, image_size, patch_size, num_classes, dim, depth, heads, mlp_dim, pool = 'cls', channels = 3, dim_head = 64, dropout = 0., emb_dropout = 0.):
+    def __init__(self,
+        *,
+        image_size,
+        patch_size,
+        num_classes,
+        dim,
+        depth,
+        heads,
+        mlp_dim,
+        pool = 'cls',
+        channels = 3,
+        dim_head = 64,
+        dropout = 0.,
+        emb_dropout = 0.
+    ):
+        
         super().__init__()
         image_height, image_width = pair(image_size)
         patch_height, patch_width = pair(patch_size)
@@ -97,6 +112,7 @@ class ViT(nn.Module):
 
         self.pos_embedding = nn.Parameter(torch.randn(1, num_patches + 1, dim))
         self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
+        
         self.dropout = nn.Dropout(emb_dropout)
 
         self.transformer = Transformer(dim, depth, heads, dim_head, mlp_dim, dropout)
@@ -125,20 +141,20 @@ class ViT(nn.Module):
         x = self.to_latent(x)
         return self.mlp_head(x)
 
-
-
 if __name__ == '__main__':
     # Example usage
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     batch_size = 5
+    n_classes  = 10
+    img_size = 224
 
-    x = torch.rand(batch_size, 3, 224, 224).to(device)   # channel size : 3
+    imgs = torch.rand(batch_size, 3, img_size, img_size).to(device)   # channel size : 3
 
     transfer_model = ViT(
-        image_size = 256,
+        image_size = 224,
         patch_size = 32,
-        num_classes = 1000,
+        num_classes = n_classes,
         dim = 1024,
         depth = 6,
         heads = 16,
@@ -146,9 +162,10 @@ if __name__ == '__main__':
         dropout = 0.1,
         emb_dropout = 0.1
     )
+    
     model=transfer_model.to(device)
 
-    print(model(x)[1].shape)
-    print(model(x).shape) # (batch_size, 1000)
+    print(model(imgs)[1].shape)
+    print(model(imgs).shape) # (batch_size, n_classes)
     
-            
+    

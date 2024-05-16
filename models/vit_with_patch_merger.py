@@ -51,7 +51,7 @@ class Attention(nn.Module):
         super().__init__()
         inner_dim = dim_head *  heads
         project_out = not (heads == 1 and dim_head == dim)
-
+        
         self.heads = heads
         self.scale = dim_head ** -0.5
 
@@ -142,3 +142,34 @@ class ViT(nn.Module):
         x = self.transformer(x)
 
         return self.mlp_head(x)
+
+if __name__ == '__main__':
+    # Example usage
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    batch_size = 5
+    n_classes  = 10
+    img_size = 256
+
+    imgs = torch.rand(batch_size, 3, img_size, img_size).to(device)   # channel size : 3
+
+    transfer_model = ViT(
+        image_size = 256,
+        patch_size = 16,
+        num_classes = 10,
+        dim = 1024,
+        depth = 12,
+        heads = 8,
+        patch_merge_layer = 6,        # at which transformer layer to do patch merging
+        patch_merge_num_tokens = 8,   # the output number of tokens from the patch merge
+        mlp_dim = 2048,
+        dropout = 0.1,
+        emb_dropout = 0.1
+    )
+    
+    model=transfer_model.to(device)
+
+    print(model(imgs)[1].shape)
+    print(model(imgs).shape) # (batch_size, n_classes)
+    
+    
