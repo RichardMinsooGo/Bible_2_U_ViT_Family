@@ -288,3 +288,30 @@ class SepViT(nn.Module):
             x = transformer(x)
 
         return self.mlp_head(x)
+
+if __name__ == '__main__':
+    # Example usage
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    batch_size = 5
+    n_classes  = 10
+    img_size = 224
+
+    imgs = torch.rand(batch_size, 3, img_size, img_size).to(device)   # channel size : 3
+
+    transfer_model = SepViT(
+        num_classes = 10,
+        dim = 32,               # dimensions of first stage, which doubles every stage (32, 64, 128, 256) for SepViT-Lite
+        dim_head = 32,          # attention head dimension
+        heads = (1, 2, 4, 8),   # number of heads per stage
+        depth = (1, 2, 6, 2),   # number of transformer blocks per stage
+        window_size = 7,        # window size of DSS Attention block
+        dropout = 0.1           # dropout
+    )
+    
+    model=transfer_model.to(device)
+
+    print(model(imgs)[1].shape)
+    print(model(imgs).shape) # (batch_size, n_classes)
+    
+    

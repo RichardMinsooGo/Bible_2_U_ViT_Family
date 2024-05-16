@@ -302,3 +302,31 @@ class ScalableViT(nn.Module):
                 x = downsample(x)
 
         return self.mlp_head(x)
+
+if __name__ == '__main__':
+    # Example usage
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    batch_size = 5
+    n_classes  = 10
+    img_size = 256
+
+    imgs = torch.rand(batch_size, 3, img_size, img_size).to(device)   # channel size : 3
+
+    transfer_model = ScalableViT(
+        num_classes = 10,
+        dim = 64,                               # starting model dimension. at every stage, dimension is doubled
+        heads = (2, 4, 8, 16),                  # number of attention heads at each stage
+        depth = (2, 2, 20, 2),                  # number of transformer blocks at each stage
+        ssa_dim_key = (40, 40, 40, 32),         # the dimension of the attention keys (and queries) for SSA. in the paper, they represented this as a scale factor on the base dimension per key (ssa_dim_key / dim_key)
+        reduction_factor = (8, 4, 2, 1),        # downsampling of the key / values in SSA. in the paper, this was represented as (reduction_factor ** -2)
+        window_size = (64, 32, None, None),     # window size of the IWSA at each stage. None means no windowing needed
+        dropout = 0.1,                          # attention and feedforward dropout
+    )
+    
+    model=transfer_model.to(device)
+
+    print(model(imgs)[1].shape)
+    print(model(imgs).shape) # (batch_size, n_classes)
+    
+    
