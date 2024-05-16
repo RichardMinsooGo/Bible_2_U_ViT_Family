@@ -241,3 +241,28 @@ class MobileViT(nn.Module):
             x = attn(x)
 
         return self.to_logits(x)
+
+
+if __name__ == '__main__':
+    # Example usage
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    batch_size = 5
+    n_classes  = 10
+    img_size = 256
+
+    imgs = torch.rand(batch_size, 3, img_size, img_size).to(device)   # channel size : 3
+
+    transfer_model = MobileViT(
+        image_size = (img_size, img_size),
+        dims = [96, 120, 144],
+        channels = [16, 32, 48, 48, 64, 64, 80, 80, 96, 96, 384],
+        num_classes = 10
+    )
+    
+    model=transfer_model.to(device)
+
+    print(model(imgs)[1].shape)
+    print(model(imgs).shape) # (batch_size, n_classes)
+    
+    
