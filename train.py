@@ -510,14 +510,56 @@ elif args.net=="rvt":
         emb_dropout = 0.1
     )
 
+elif args.net=="scalable_vit":
+    from models.scalable_vit import ScalableViT
+    net = ScalableViT(
+        num_classes = 10,
+        dim = 64,                               # starting model dimension. at every stage, dimension is doubled
+        heads = (2, 4, 8, 16),                  # number of attention heads at each stage
+        depth = (2, 2, 20, 2),                  # number of transformer blocks at each stage
+        ssa_dim_key = (40, 40, 40, 32),         # the dimension of the attention keys (and queries) for SSA. in the paper, they represented this as a scale factor on the base dimension per key (ssa_dim_key / dim_key)
+        reduction_factor = (8, 4, 2, 1),        # downsampling of the key / values in SSA. in the paper, this was represented as (reduction_factor ** -2)
+        window_size = (64, 32, None, None),     # window size of the IWSA at each stage. None means no windowing needed
+        dropout = 0.1,                          # attention and feedforward dropout
+    )
+
+elif args.net=="sep_vit":
+    from models.sep_vit import SepViT
+    net = SepViT(
+        num_classes = 10,
+        dim = 32,               # dimensions of first stage, which doubles every stage (32, 64, 128, 256) for SepViT-Lite
+        dim_head = 32,          # attention head dimension
+        heads = (1, 2, 4, 8),   # number of heads per stage
+        depth = (1, 2, 6, 2),   # number of transformer blocks per stage
+        window_size = 7,        # window size of DSS Attention block
+        dropout = 0.1           # dropout
+    )
+
+"""
+
+elif args.net=="xxxx":
+    from models.xxxx import xxxx
+    net = xxxx(
+    )
+
+elif args.net=="xxxx":
+    from models.xxxx import xxxx
+    net = xxxx(
+    )
+
+elif args.net=="xxxx":
+    from models.xxxx import xxxx
+    net = xxxx(
+    )
+
+elif args.net=="xxxx":
+    from models.xxxx import xxxx
+    net = xxxx(
+    )
 
 
 
-
-
-
-
-
+"""
 
 
 
