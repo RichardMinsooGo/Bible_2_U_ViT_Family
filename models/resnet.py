@@ -10,7 +10,8 @@ scale_fac = 3
 image_size = int(32*scale_fac)   # Default 224 at A-100
 
 import torch
-import torch.nn as nn
+from torch import nn
+
 import torch.nn.functional as F
 
 
@@ -115,10 +116,23 @@ def ResNet101():
 def ResNet152():
     return ResNet(Bottleneck, [3,8,36,3])
 
+if __name__ == '__main__':
+    # Example usage
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    scale_fac = 3
+    batch_size = 5
+    n_classes  = 10
+    img_size = int(32*scale_fac)   # Default 224 at A-100
 
-def test():
-    net = ResNet18()
-    y = net(torch.randn(1,3,32,32))
-    print(y.size())
+    imgs = torch.rand(batch_size, 3, img_size, img_size).to(device)   # channel size : 3
 
-# test()
+    print(imgs.shape)
+    transfer_model = net = ResNet18()
+    
+    model=transfer_model.to(device)
+
+    print(model(imgs)[1].shape)
+    print(model(imgs).shape) # (batch_size, n_classes)
+    
+    
